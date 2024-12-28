@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"> <!-- Pastikan charset diatur ke UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>🌟 Image Classification 🌟</h1>
+        </header>
+
+        <!-- Upload Section -->
+        <section class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <!-- Label untuk input file -->
+                <label for="imageInput" class="upload-label">Choose an image to upload</label>
+                <input type="file" name="image" id="imageInput" accept="image/*" required 
+                       title="Select an image file to upload" placeholder="Click to choose an image">
+                
+                <!-- Tombol submit -->
+                <button type="submit" title="Click to upload the image and get prediction">Upload & Predict</button>
+            </form>
+        </section>
+
+        <!-- Upload Rules Section -->
+        <section class="rules-section">
+            <h2>📋 Upload Rules</h2>
+            <ul class="rules-list">
+                <li>The background must be plain white.</li>
+                <li>The image must not be a 2D or 3D illustration.</li>
+                <li>The image should feature one fruit positioned at the center.</li>
+                <li>The fruit must have a natural appearance and common characteristics.</li>
+                <li>The fruit must not be rotten or show signs of decay.</li>
+                <li>The image size must be 177x177 pixels.</li>
+            </ul>
+        </section>
+
+        <!-- Result Section -->
+        <section id="result" class="hidden">
+            <h2>🔍 Prediction Result 🔍</h2>
+            <div class="image-container">
+                <img id="uploadedImage" alt="Uploaded Image">
+            </div>
+            <div id="predictions" class="predictions-container">
+                <!-- Prediction bars will be dynamically inserted here -->
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const classNames = [
+            'Grapes', 'Apple', 'Starfruit', 'Orange',
+            'Kiwi', 'Mango', 'Pineapple', 'Banana',
+            'Watermelon', 'Strawberry'
+        ];
+
+        const form = document.getElementById('uploadForm');
+        const resultDiv = document.getElementById('result');
+        const imageElement = document.getElementById('uploadedImage');
+        const predictionsDiv = document.getElementById('predictions');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            resultDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error uploading the image.');
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                imageElement.src = data.image_url;
+                predictionsDiv.innerHTML = '';
+
+                data.probabilities.forEach((prob, index) => {
+                    const predictionRow = document.createElement('div');
+                    predictionRow.className = 'prediction-row';
+                
+                    const label = document.createElement('div');
+                    label.className = 'label';
+                    label.textContent = classNames[index];
+                
+                    const barContainer = document.createElement('div');
+                    barContainer.className = 'bar-container';
+                
+                    const bar = document.createElement('div');
+                    bar.className = 'bar';
+                    bar.style.width = `${(prob * 100).toFixed(2)}%`;
+                
+                    const percentage = document.createElement('div');
+                    percentage.className = 'percentage';
+                    percentage.textContent = `${(prob * 100).toFixed(2)}%`;
+                
+                    barContainer.appendChild(bar);
+                    predictionRow.appendChild(label);
+                    predictionRow.appendChild(barContainer);
+                    predictionRow.appendChild(percentage);
+                
+                    predictionsDiv.appendChild(predictionRow);
+                });
+
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>
