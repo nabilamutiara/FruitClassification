@@ -87,4 +87,4 @@ def uploaded_file(filename):
 # Run the Flask app
 if __name__ == '__main__':
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limit file size to 16MB (adjust as needed)
-    app.run()  # Run in production mode (debug=False)
+    app.run()  # Run in production mode (debug=False, host = '0.0.0.0')
